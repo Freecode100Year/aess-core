@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AESS Operational Verification Report Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "enum": ["2.1.2"] },
+    "manifestHash": { "type": "string" },
+    "runtimeReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "string", "enum": ["PASS", "FAIL"] },
+        "exitCode": { "type": "integer" },
+        "conformanceLevel": { "type": "integer" }
+      },
+      "required": ["status", "exitCode", "conformanceLevel"]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "capability": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "outcome": { "type": "string", "enum": ["GRANTED", "DENIED", "EXECUTED", "FAILED"] },
+          "artifactHash": { "type": "string" },
+          "logDigest": { "type": "string" }
+        },
+        "required": ["capability", "timestamp", "outcome", "artifactHash"]
+      }
+    }
+  },
+  "required": ["schemaVersion", "manifestHash", "runtimeReceipt", "evidence"]
+}

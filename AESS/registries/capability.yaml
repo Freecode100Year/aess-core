@@ -1,0 +1,7 @@
+registry: "AESS Standard Capability Registry"
+version: "2.1.2"
+stability: "experimental"
+registered_tokens:
+  - id: "FS_WRITE"
+    scope: "workspace"
+    default_policy: "deny"

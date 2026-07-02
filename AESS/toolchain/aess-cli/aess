@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+import os, sys, json, hashlib
+
+VERSION = "2.1.2"
+
+def print_err(msg):
+    print(f"[-] ERROR: {msg}", file=sys.stderr)
+    return False
+
+def calculate_manifest_hash():
+    h = hashlib.sha256()
+    for p in ["AESS/specification/requirements.md", "AESS/registries/capability.yaml"]:
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()
+
+def validate_semantic_integrity(data, calculated_hash):
+    if data.get("manifestHash") != calculated_hash:
+        return print_err(f"ManifestHash mismatch! Found: {data.get('manifestHash')}, Expected: {calculated_hash}")
+    evidences = data.get("evidence", [])
+    caps = [e.get("capability") for e in evidences]
+    expected_flow = ["FS_WRITE", "BROKER_RELAY", "PROCESS_EXECUTION"]
+    if caps != expected_flow:
+        return print_err(f"Evidence topological reordering detected! Found: {caps}")
+    if len(evidences) < 2 or evidences[1].get("artifactHash") != calculated_hash[:16]:
+        return print_err("Broker token tied to mock telemetry!")
+    return True
+
+def verify_level_1():
+    print(f"[+] AESS Conformance Verification Level 1 (v{VERSION})")
+    result_path = "logs/RESULT.json"
+    schema_path = "AESS/schemas/result-2.1.schema.json"
+    if not os.path.exists(result_path): 
+        print_err(f"Result file not found: {result_path}")
+        return 1
+    with open(result_path, "r") as f: data = json.load(f)
+    
+    try:
+        from jsonschema import validate
+        with open(schema_path, "r") as sf: 
+            validate(instance=data, schema=json.load(sf))
+        print("[+] Conformance Schema Contract Verification: PASS")
+    except ImportError:
+        print_err("CRITICAL DEPENDENCY DEFECT: 'jsonschema' module is missing. Explicitly blocking fallback evasion.")
+        return 1
+    except Exception as e:
+        return print_err(f"Schema Contract Broken: {str(e)}") or 1
+        
+    calculated_hash = calculate_manifest_hash()
+    if not validate_semantic_integrity(data, calculated_hash): return 1
+    print(f"[ ALL GATES PASSED] Global semantic consistency verified. Locked against Manifest: {calculated_hash[:16]}")
+    return 0
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2 or sys.argv[1] != "verify": 
+        print("Usage: aess verify")
+        sys.exit(1)
+    sys.exit(verify_level_1())
