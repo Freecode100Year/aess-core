@@ -84,3 +84,5 @@ chmod +x setup_aess.sh
 *   `AESS/schemas/result-2.1.schema.json`：合规报告的 JSON Schema 规约。
 *   `AESS/toolchain/aess-cli/aess`：Python 编写的主卡关逻辑门控。
 *   `AESS/examples/cross-agent-demo/`：TS/JS/Python 代理间的数据流协作示例。
+
+<!-- AESS Auto-Deployment Iteration: 1 at 2026-07-02 23:22:38 -->
